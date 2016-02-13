@@ -15,7 +15,7 @@ import akka.http.scaladsl.marshallers.xml.ScalaXmlSupport._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.Uri.Path.Segment
 import akka.stream.{Fusing, FlowShape, ActorMaterializer}
-import com.betgenius.model.{PersistenceResult, Market, SportingFixture}
+import com.betgenius.model.{SportsFixture, PersistenceResult, Market, SportingFixture}
 import com.betgenius.repository.EntityManager
 import scala.collection.mutable
 import scala.concurrent.Future
@@ -69,7 +69,7 @@ object Application extends ScalaXmlSupport {
     val flow = Flow[HttpRequest].mapAsync(4){
       case HttpRequest(HttpMethods.POST,Uri.Path("/"),headers,body,protocol) =>  fixtureUnmarshaller(body)
     }.mapAsync(2){
-        case SportingFixture(_,_,_,_,_) => (echoActor ? "joe").mapTo[PersistenceResult]
+      case f @ SportsFixture(_,_,_) => (echoActor ? f).mapTo[PersistenceResult]
     }.via(broadcastPersistenceResult).map(f => HttpResponse(200, entity="successfully persisted the fixture"))
 
     val flow2 = Fusing.aggressive(flow)
