@@ -74,11 +74,6 @@ object Application extends ScalaXmlSupport {
 
     val flow2 = Fusing.aggressive(flow)
 
-//    val flow = Flow[HttpRequest].mapAsync(4){
-//      case HttpRequest(HttpMethods.POST,Uri.Path("/"),headers,body,protocol) =>  fixtureUnmarshaller(body)
-//    }.map(f => HttpResponse(200, entity="the name of the fixture is " + f.name + " and the competition is "+ f.competition.name))
-
-
     val serverSource: Source[Http.IncomingConnection, Future[Http.ServerBinding]] =
       Http().bind(interface = "localhost", port = 9095)
 

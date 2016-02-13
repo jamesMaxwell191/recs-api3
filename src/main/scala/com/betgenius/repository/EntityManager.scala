@@ -1,7 +1,7 @@
 package com.betgenius.repository
 
 import akka.actor.{ActorLogging, Props, Actor}
-import com.betgenius.model.SportingFixture
+import com.betgenius.model.{SportsFixture, SportingFixture}
 import com.betgenius.repository.EntityManager.Persist
 
 /**
@@ -21,5 +21,5 @@ object EntityManager {
 
     def props = Props[EntityManager]
 
-    case class Persist(fixture:SportingFixture)
+    case class Persist(fixture:SportsFixture)
 }

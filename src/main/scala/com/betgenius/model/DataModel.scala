@@ -4,6 +4,7 @@ import akka.http.javadsl.server.Unmarshaller
 
 import scala.xml.NodeSeq
 
+case class PersistenceResult(status:String)
 
 object SportingFixture {
       def fromXml(node:NodeSeq) = {
