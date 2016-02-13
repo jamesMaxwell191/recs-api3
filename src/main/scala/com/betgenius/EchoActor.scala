@@ -1,20 +1,26 @@
 package com.betgenius
 
-import akka.actor.{Props, Actor}
+import akka.actor.{ActorLogging, Props, Actor}
+import akka.cluster.client.{ClusterClientSettings, ClusterClient}
 import com.betgenius.EchoActor.EchoMessage
-import com.betgenius.model.PersistenceResult
-import org.joda.time.DateTime
+import com.betgenius.model.{SportsFixture, PersistenceResult}
+import akka.pattern.ask
 
 /**
   * Created by douglas on 06/02/16.
   */
-class EchoActor extends Actor{
+class EchoActor extends Actor with ActorLogging{
+
+  val client = context.actorOf(ClusterClient.props(ClusterClientSettings(context.system)), "clusterClient")
 
      override def receive = {
-       case EchoMessage(text) => println("sleeping in the echo actor " + DateTime.now); Thread.sleep(10000); sender ! s"hello there $text"
+       case EchoMessage(text) => println("in the echo actor , updating the cluster")
 
-       case _ => println("echoing a persistence result")
-                           sender ! PersistenceResult("Joe")
+
+       case SportsFixture(_,_,_) => println("received a sports fixture")
+         client.(ClusterClient.Send("/user/sportingFixtureService", "3:Rangers vs Celtic", localAffinity = true), self)
+
+       case s:String => log.info("got a response from the cluster")
      }
 
 }
