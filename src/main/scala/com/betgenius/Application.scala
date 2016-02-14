@@ -1,32 +1,21 @@
 package com.betgenius
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.xml.ScalaXmlSupport
-import akka.http.scaladsl.model.{HttpMethods, Uri, HttpResponse, HttpRequest}
-import akka.http.scaladsl.model.Uri.Path.Segment
-import akka.http.scaladsl.server.{RouteResult, Route, ExceptionHandler}
-import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse, Uri}
 import akka.pattern.ask
 import akka.routing.RoundRobinPool
 import akka.stream.scaladsl._
+import akka.stream.{ActorMaterializer, FlowShape, Fusing}
 import akka.util.Timeout
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.marshallers.xml.ScalaXmlSupport._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.model.Uri.Path.Segment
-import akka.stream.{Fusing, FlowShape, ActorMaterializer}
-import com.betgenius.model.{SportsFixture, PersistenceResult, Market, SportingFixture}
+import com.betgenius.model.{PersistenceResult, SportingFixture, SportsFixture}
 import com.betgenius.repository.EntityManager
 import com.betgenius.repository.EntityManager.Persist
-import scala.collection.mutable
-import scala.concurrent.Future
-import scala.concurrent.duration._
-import akka.http.scaladsl.marshallers.xml.ScalaXmlSupport._
-import akka.http.scaladsl.server.Directives._
-
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.xml.NodeSeq
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 /**
   * This spray applicaton exposes a rest web service which provides
