@@ -23,8 +23,8 @@ class EchoActor extends Actor with ActorLogging{
        case EchoMessage(text) => println("in the echo actor , updating the cluster")
 
 
-       case SportsFixture(_,_,_) => println("received a sports fixture")
-         val result = (client ?  ClusterClient.Send("/user/sportingFixtureService", "3:Rangers vs Celtic", localAffinity = true)).mapTo[String]
+       case fixture @ SportsFixture(_,_,_) => println("received a sports fixture")
+         val result = (client ?  ClusterClient.Send("/user/sportingFixtureService", fixture , localAffinity = true)).mapTo[String]
          result.map(PersistenceResult(_)) pipeTo sender
      }
 
