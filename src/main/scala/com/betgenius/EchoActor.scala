@@ -13,19 +13,13 @@ import scala.concurrent.duration._
   */
 class EchoActor extends Actor with ActorLogging{
 
-  import scala.concurrent.ExecutionContext.Implicits.global
-
   implicit val timeout = Timeout(10 seconds)
 
-  val client = context.actorOf(ClusterClient.props(ClusterClientSettings(context.system)), "clusterClient")
-
      override def receive = {
-       case EchoMessage(text) => println("in the echo actor , updating the cluster")
+       case EchoMessage(text) => log.info(s"echoing $text")
 
+       case s:String => log.info(s"received message $s")
 
-       case fixture @ SportsFixture(_,_,_) => println("received a sports fixture")
-         val result = (client ?  ClusterClient.Send("/user/sportingFixtureService", fixture , localAffinity = true)).mapTo[String]
-         result.map(PersistenceResult(_)) pipeTo sender
      }
 
 }

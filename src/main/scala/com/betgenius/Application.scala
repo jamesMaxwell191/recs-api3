@@ -17,6 +17,7 @@ import akka.http.scaladsl.model.Uri.Path.Segment
 import akka.stream.{Fusing, FlowShape, ActorMaterializer}
 import com.betgenius.model.{SportsFixture, PersistenceResult, Market, SportingFixture}
 import com.betgenius.repository.EntityManager
+import com.betgenius.repository.EntityManager.Persist
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -52,16 +53,16 @@ object Application extends ScalaXmlSupport {
     implicit val fixtureUnmarshaller = defaultNodeSeqUnmarshaller.map(SportingFixture.fromXml(_))
 
 
-    lazy val echoActor = actorSystem.actorOf(RoundRobinPool(5).props(EchoActor.props), "persistenceRouter")
+    lazy val echoActor = actorSystem.actorOf(RoundRobinPool(5).props(EchoActor.props), "echoRouter")
 
+    lazy val persister = actorSystem.actorOf(RoundRobinPool(5).props(EntityManager.props), "persistenceRouter")
 
-    lazy val entityActor = actorSystem.actorOf(RoundRobinPool(5).props(EntityManager.props), "gtpRouter")
 
     val broadcastPersistenceResult =
       Flow.fromGraph(GraphDSL.create() { implicit b =>
         import GraphDSL.Implicits._
         val broadcast = b.add(Broadcast[PersistenceResult](2))
-        broadcast.out(0).map(convertPersistentEntity(_)) ~> Sink.actorRef(entityActor,"gtpRouter")
+        broadcast.out(0).map(convertPersistentEntity(_)) ~> Sink.actorRef(echoActor,"gtpRouter")
         FlowShape(broadcast.in, broadcast.out(1))
       })
 
@@ -69,7 +70,7 @@ object Application extends ScalaXmlSupport {
     val flow = Flow[HttpRequest].mapAsync(4){
       case HttpRequest(HttpMethods.POST,Uri.Path("/"),headers,body,protocol) =>  fixtureUnmarshaller(body)
     }.mapAsync(2){
-      case f @ SportsFixture(_,_,_) => (echoActor ? f).mapTo[PersistenceResult]
+      case fix @ SportsFixture(_,_,_) => (persister ? Persist(fix)).mapTo[PersistenceResult]
     }.via(broadcastPersistenceResult).map(f => HttpResponse(200, entity="successfully persisted the fixture"))
 
     val flow2 = Fusing.aggressive(flow)
